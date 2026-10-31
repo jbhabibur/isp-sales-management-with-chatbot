@@ -38,9 +38,10 @@ export default function PackagesPage() {
       month: "/ মাস",
       request: "নতুন সংযোগ নিন",
       loading: "প্যাকেজ লোড হচ্ছে...",
-      empty: "বর্তমানে কোনো Active Package পাওয়া যায়নি।",
-      error: "প্যাকেজ লোড করা যায়নি। Backend চালু আছে কি না দেখুন।",
-      popular: "আপনার পছন্দের প্যাকেজ",
+      empty: "দুঃখিত, বর্তমানে কোনো প্যাকেজ পাওয়া যাচ্ছে না।",
+      error:
+        "দুঃখিত, প্যাকেজগুলো লোড করা সম্ভব হয়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।",
+      popular: "জনপ্রিয় প্যাকেজ",
 
       newConnection: "নতুন সংযোগ",
       back: "ফিরে যান",
@@ -66,14 +67,15 @@ export default function PackagesPage() {
     en: {
       eyebrow: "CIRCLE NETWORK",
       title: "Our Internet Packages",
-      description: "Choose the right internet package according to your needs.",
+      description: "Choose the internet package that best suits your needs.",
       speed: "Internet Speed",
       month: "/ month",
-      request: "Request Connection",
+      request: "Get a New Connection",
       loading: "Loading packages...",
-      empty: "No active packages available at the moment.",
-      error: "Failed to load packages. Please check the backend.",
-      popular: "Choose Your Package",
+      empty: "Sorry, no packages are currently available.",
+      error:
+        "Sorry, we couldn't load the packages. Please try again in a few moments.",
+      popular: "Popular Package",
 
       newConnection: "New Connection",
       back: "Go Back",
