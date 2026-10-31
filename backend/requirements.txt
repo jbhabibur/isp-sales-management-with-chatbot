@@ -1,6 +1,8 @@
+fastapi
+uvicorn[standard]
 pwdlib[argon2]
 PyJWT
 email-validator
 sqlalchemy
-dotenv
+python-dotenv
 psycopg-binary
