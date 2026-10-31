@@ -1,3 +1,6 @@
 pwdlib[argon2]
 PyJWT
 email-validator
+sqlalchemy
+dotenv
+psycopg-binary
