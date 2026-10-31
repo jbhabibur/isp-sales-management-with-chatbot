@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+
+  /* Main Colors */
+  --background: #fffcf3;
+  --foreground: #292319;
+
+  /* Brand Colors */
+  --primary: #f5b91b;
+  --primary-foreground: #292319;
+
+  /* Supporting Colors */
+  --secondary: #fff3cf;
+  --muted: #fff8e7;
+  --muted-foreground: #756b58;
+
+  /* Borders */
+  --border: #ebd69b;
+
+  /* Additional Brand Colors */
+  --gold-dark: #e9a900;
+  --gold-light: #ffe9a6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-light: var(--gold-light);
+
+  --font-sans: var(--font-english), var(--font-bangla), sans-serif;
+  --font-mono: monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-english), var(--font-bangla), sans-serif;
+}
+
+/* Selection */
+::selection {
+  background: var(--primary);
+  color: var(--foreground);
+}
+
+/* Form Controls */
+input,
+select,
+textarea {
+  color: var(--foreground);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
