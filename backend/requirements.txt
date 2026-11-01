@@ -5,4 +5,5 @@ PyJWT
 email-validator
 sqlalchemy
 python-dotenv
+psycopg
 psycopg-binary
