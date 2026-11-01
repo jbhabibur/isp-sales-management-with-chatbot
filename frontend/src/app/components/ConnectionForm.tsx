@@ -41,8 +41,11 @@ export default function ConnectionForm({
     setMessage("");
     setSuccess(false);
 
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/orders/", {
+      const response = await fetch(`${API_BASE_URL}/api/orders/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
