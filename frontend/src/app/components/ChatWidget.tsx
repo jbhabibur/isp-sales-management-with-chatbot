@@ -30,6 +30,7 @@ export default function ChatWidget() {
   const [messageType, setMessageType] = useState<"success" | "error">(
     "success",
   );
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [city, setCity] = useState("");
   const [area, setArea] = useState("");
@@ -54,6 +55,9 @@ export default function ChatWidget() {
     phone: isBn ? "মোবাইল নম্বর" : "Phone Number",
     city: isBn ? "শহর নির্বাচন করুন" : "Select City",
     area: isBn ? "এলাকা নির্বাচন করুন" : "Select Area",
+    otherArea: isBn
+      ? "অন্যান্য (অনুরোধ জমা দিন)"
+      : "Other (Request connection)",
     address: isBn ? "সম্পূর্ণ ঠিকানা" : "Full Address",
     package: isBn
       ? "ইন্টারনেট প্যাকেজ নির্বাচন করুন"
@@ -86,6 +90,7 @@ export default function ChatWidget() {
   const reset = () => {
     setOption(null);
     setMessage("");
+    setIsSubmitted(false);
     setCity("");
     setArea("");
     setCustomerName("");
@@ -97,6 +102,7 @@ export default function ChatWidget() {
   const openOption = async (selected: Option) => {
     setOption(selected);
     setMessage("");
+    setIsSubmitted(false);
 
     if (selected === "packages" || selected === "connection") {
       setLoading(true);
@@ -147,6 +153,7 @@ export default function ChatWidget() {
       }
 
       setMessageType("success");
+      setIsSubmitted(true);
     } catch {
       setMessage(t.error);
       setMessageType("error");
@@ -168,6 +175,7 @@ export default function ChatWidget() {
 
       setMessage(t.callbackSuccess);
       setMessageType("success");
+      setIsSubmitted(true);
     } catch {
       setMessage(t.error);
       setMessageType("error");
@@ -305,7 +313,7 @@ export default function ChatWidget() {
                   <button
                     type="button"
                     onClick={() => openOption("connection")}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-3.5 text-left text-sm font-semibold text-gray-800 shadow-sm transition hover:border-[#E19112] hover:bg-amber-50"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-[#ffffff] p-3.5 text-left text-sm font-semibold text-gray-800 shadow-sm transition hover:border-[#E19112] hover:bg-amber-50"
                   >
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-lg">
                       🌐
@@ -340,20 +348,17 @@ export default function ChatWidget() {
               </button>
             )}
 
-            {/* Loading */}
-            {loading && (
-              <div className="flex justify-center py-5">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#E19112] border-t-transparent" />
-                  {t.loading}
-                </div>
-              </div>
-            )}
-
             {/* Packages */}
-            {option === "packages" && !loading && (
+            {option === "packages" && (
               <div className="space-y-3">
-                {packages.length === 0 ? (
+                {loading ? (
+                  <div className="flex justify-center py-5">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#E19112] border-t-transparent" />
+                      {t.loading}
+                    </div>
+                  </div>
+                ) : packages.length === 0 ? (
                   <div className="rounded-xl border border-gray-200 bg-white p-4 text-center text-sm text-gray-500">
                     {t.empty}
                   </div>
@@ -392,7 +397,7 @@ export default function ChatWidget() {
             )}
 
             {/* New Connection */}
-            {option === "connection" && !loading && (
+            {option === "connection" && !isSubmitted && (
               <form
                 onSubmit={submitConnection}
                 className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
@@ -442,20 +447,21 @@ export default function ChatWidget() {
                   ))}
                 </select>
 
-                <input
+                <select
                   required
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  list="coverage-areas"
-                  placeholder={t.area}
                   className={inputClass}
-                />
-
-                <datalist id="coverage-areas">
+                  disabled={!city}
+                >
+                  <option value="">{t.area}</option>
                   {availableAreas.map((item) => (
-                    <option key={item.id} value={item.area_name} />
+                    <option key={item.id} value={item.area_name}>
+                      {item.area_name}
+                    </option>
                   ))}
-                </datalist>
+                  <option value="Onnonno">{t.otherArea}</option>
+                </select>
 
                 <input
                   required
@@ -475,7 +481,7 @@ export default function ChatWidget() {
                   <option value="">{t.package}</option>
                   {packages.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name} - {item.speed} (৳{item.monthly_price})
+                      {item.name} {item.speed} (৳{item.monthly_price})
                     </option>
                   ))}
                 </select>
@@ -483,11 +489,20 @@ export default function ChatWidget() {
                 <button disabled={loading} className={buttonClass}>
                   {t.submit}
                 </button>
+
+                {loading && (
+                  <div className="flex justify-center pt-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#E19112] border-t-transparent" />
+                      {t.loading}
+                    </div>
+                  </div>
+                )}
               </form>
             )}
 
             {/* Callback Request */}
-            {option === "agent" && (
+            {option === "agent" && !isSubmitted && (
               <form
                 onSubmit={submitCallback}
                 className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
@@ -526,6 +541,15 @@ export default function ChatWidget() {
                 <button disabled={loading} className={buttonClass}>
                   {t.submit}
                 </button>
+
+                {loading && (
+                  <div className="flex justify-center pt-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#E19112] border-t-transparent" />
+                      {t.loading}
+                    </div>
+                  </div>
+                )}
               </form>
             )}
 

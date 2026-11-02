@@ -231,8 +231,9 @@ async function authenticatedFetch(endpoint: string, options?: RequestInit) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers: {
-      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
       ...options?.headers,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -243,7 +244,10 @@ async function authenticatedFetch(endpoint: string, options?: RequestInit) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.detail || "Request failed");
+
+    throw new Error(
+      errorData?.detail ? JSON.stringify(errorData.detail) : "Request failed",
+    );
   }
 
   return response.json();
@@ -503,22 +507,146 @@ export async function updateOrderStatus(
 }
 
 // ==================== Admin → Callback Requests  ====================
+export type CallbackStatus =
+  | "PENDING"
+  | "CONTACTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface CallbackRequest {
   id: number;
   customer_name: string;
   phone: string;
   message?: string | null;
-  status: string;
+  status: CallbackStatus;
+  assigned_agent_id: number | null;
   created_at: string;
 }
 
-export async function getCallbackRequests(): Promise<CallbackRequest[]> {
-  return authenticatedFetch("/api/callbacks/");
+export interface CallbackListResponse {
+  items: CallbackRequest[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
-// ==================== Admin → Callback Requests  ====================
+export interface CallbackHistory {
+  id: number;
+  callback_id: number;
+  actor_user_id: number | null;
+  actor_name: string;
+  action: "CREATED" | "ASSIGNED" | "STATUS_CHANGED" | "NOTE_ADDED";
+  old_value: string | null;
+  new_value: string | null;
+  note: string | null;
+  created_at: string;
+}
 
+export interface AgentCallbackHistory {
+  id: number;
+  callback_id: number;
+  customer_name: string;
+  phone: string;
+  action: string;
+  old_value: string | null;
+  new_value: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+// Get all callback requests
+export async function getCallbackRequests(params?: {
+  status?: CallbackStatus;
+  search?: string;
+  skip?: number;
+  limit?: number;
+}): Promise<CallbackListResponse> {
+  const query = new URLSearchParams();
+
+  if (params?.status) query.set("status", params.status);
+  if (params?.search?.trim()) {
+    query.set("search", params.search.trim());
+  }
+  if (params?.skip !== undefined) {
+    query.set("skip", String(params.skip));
+  }
+  if (params?.limit !== undefined) {
+    query.set("limit", String(params.limit));
+  }
+
+  const queryString = query.toString();
+
+  return authenticatedFetch(
+    `/api/callbacks/${queryString ? `?${queryString}` : ""}`,
+  );
+}
+
+// Get single callback details
+export async function getCallback(id: number): Promise<CallbackRequest> {
+  return authenticatedFetch(`/api/callbacks/${id}`);
+}
+
+// Assign callback to a sales agent
+export async function assignCallback(
+  id: number,
+  agentId: number,
+): Promise<{
+  message: string;
+  id: number;
+  assigned_agent_id: number;
+}> {
+  return authenticatedFetch(`/api/callbacks/${id}/assign`, {
+    method: "PATCH",
+    body: JSON.stringify({ agent_id: agentId }),
+  });
+}
+
+// Update callback status
+export async function updateCallbackStatus(
+  id: number,
+  status: CallbackStatus,
+): Promise<{
+  message: string;
+  id: number;
+  status: CallbackStatus;
+}> {
+  return authenticatedFetch(`/api/callbacks/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+// Add callback note
+export async function addCallbackNote(
+  id: number,
+  note: string,
+): Promise<{
+  message: string;
+  callback_id: number;
+}> {
+  return authenticatedFetch(`/api/callbacks/${id}/notes`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+// Get callback activity history
+export async function getCallbackHistory(
+  id: number,
+): Promise<CallbackHistory[]> {
+  return authenticatedFetch(`/api/callbacks/${id}/history`);
+}
+
+// Get sales agent's callback activity history
+export async function getAgentCallbackHistory(
+  agentId: number,
+): Promise<AgentCallbackHistory[]> {
+  return authenticatedFetch(
+    `/api/callbacks/agents/${agentId}/callback-history`,
+  );
+}
+
+// ==================== Admin → Future Leads  ====================
 export interface FutureLead {
   id: number;
   customer_name: string;
@@ -530,6 +658,77 @@ export interface FutureLead {
   created_at: string;
 }
 
-export async function getFutureLeads(): Promise<FutureLead[]> {
-  return authenticatedFetch("/api/future-leads/");
+export interface FutureLeadStats {
+  total_leads: number;
+  new_leads: number;
+  contacted_leads: number;
+  converted_leads: number;
+}
+
+export type FutureLeadStatus =
+  | "NEW"
+  | "CONTACTED"
+  | "INTERESTED"
+  | "COVERAGE_PLANNED"
+  | "CONVERTED"
+  | "REJECTED";
+
+export interface FutureLeadFilters {
+  search?: string;
+  city?: string;
+  area?: string;
+  status?: FutureLeadStatus;
+}
+
+// Get All Future Leads
+export async function getFutureLeads(
+  filters?: FutureLeadFilters,
+): Promise<FutureLead[]> {
+  const params = new URLSearchParams();
+
+  if (filters?.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
+  if (filters?.city?.trim()) {
+    params.set("city", filters.city.trim());
+  }
+
+  if (filters?.area?.trim()) {
+    params.set("area", filters.area.trim());
+  }
+
+  if (filters?.status) {
+    params.set("status", filters.status);
+  }
+
+  const query = params.toString();
+
+  return authenticatedFetch(`/api/future-leads/${query ? `?${query}` : ""}`);
+}
+
+// Get Single Future Lead
+
+export async function getFutureLead(id: number): Promise<FutureLead> {
+  return authenticatedFetch(`/api/future-leads/${id}`);
+}
+
+// Update Future Lead Status
+export async function updateFutureLeadStatus(
+  id: number,
+  status: FutureLeadStatus,
+): Promise<{
+  message: string;
+  id: number;
+  status: FutureLeadStatus;
+}> {
+  return authenticatedFetch(`/api/future-leads/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
+
+//Get Future Lead Statistics
+export async function getFutureLeadStats(): Promise<FutureLeadStats> {
+  return authenticatedFetch("/api/future-leads/stats/summary");
 }

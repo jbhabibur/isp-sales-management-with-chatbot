@@ -2,17 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+
 import {
-  CustomerOrder,
-  OrderStatus,
+  type CustomerOrder,
+  type OrderStatus,
   getOrders,
   updateOrderStatus,
   getCurrentUser,
   getStoredUser,
   logout,
 } from "@/lib/api";
+
 import { useLanguage } from "@/app/components/LanguageProvider";
+import AdminPageLayout from "../../components/AdminPageLayout";
 
 const statuses: OrderStatus[] = [
   "PENDING",
@@ -28,21 +30,20 @@ export default function AdminOrdersPage() {
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
 
   const t = {
     title: isBn ? "কাস্টমার অর্ডার" : "Customer Orders",
     subtitle: isBn
       ? "সব কাস্টমার অর্ডার দেখুন এবং স্ট্যাটাস পরিবর্তন করুন।"
       : "View customer orders and update their statuses.",
-    dashboard: isBn ? "ড্যাশবোর্ড" : "Dashboard",
     total: isBn ? "মোট অর্ডার" : "Total Orders",
     pending: isBn ? "অপেক্ষমাণ" : "Pending",
     confirmed: isBn ? "নিশ্চিত" : "Confirmed",
     connected: isBn ? "সংযোগ সম্পন্ন" : "Connected",
-    cancelled: isBn ? "বাতিল" : "Cancelled",
     customer: isBn ? "কাস্টমার" : "Customer",
     contact: isBn ? "যোগাযোগ" : "Contact",
     location: isBn ? "ঠিকানা" : "Address",
@@ -50,27 +51,36 @@ export default function AdminOrdersPage() {
     price: isBn ? "মাসিক মূল্য" : "Monthly Price",
     status: isBn ? "স্ট্যাটাস" : "Status",
     action: isBn ? "স্ট্যাটাস পরিবর্তন" : "Update Status",
-    all: isBn ? "সব অর্ডার" : "All Orders",
     loading: isBn ? "লোড হচ্ছে..." : "Loading...",
     empty: isBn ? "কোনো অর্ডার পাওয়া যায়নি।" : "No orders found.",
     error: isBn ? "অর্ডার লোড করা যায়নি।" : "Failed to load orders.",
     updateError: isBn
       ? "স্ট্যাটাস পরিবর্তন করা যায়নি।"
       : "Failed to update status.",
-    logout: isBn ? "লগআউট" : "Logout",
-    refresh: isBn ? "রিফ্রেশ" : "Refresh",
+    search: isBn
+      ? "কাস্টমার, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
+      : "Search customer, phone or address...",
+    found: isBn ? "টি অর্ডার পাওয়া গেছে" : "orders found",
+    updating: isBn ? "আপডেট হচ্ছে..." : "Updating...",
   };
 
-  async function loadOrders() {
+  async function loadOrders(showLoader = true) {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+
       setError("");
+
       const data = await getOrders();
       setOrders(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -129,9 +139,23 @@ export default function AdminOrdersPage() {
   }
 
   const filteredOrders = useMemo(() => {
-    if (filter === "ALL") return orders;
-    return orders.filter((order) => order.status === filter);
-  }, [orders, filter]);
+    const query = search.trim().toLowerCase();
+
+    if (!query) return orders;
+
+    return orders.filter((order) =>
+      [
+        order.customer_name,
+        order.phone,
+        order.city,
+        order.area,
+        order.address,
+        order.package_name,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [orders, search]);
 
   function statusLabel(status: OrderStatus) {
     const labels: Record<OrderStatus, string> = {
@@ -156,126 +180,145 @@ export default function AdminOrdersPage() {
   }
 
   const stats = [
-    { label: t.total, value: orders.length, color: "text-gray-900" },
+    {
+      label: t.total,
+      value: orders.length,
+      color: "text-gray-900",
+      bg: "bg-white",
+    },
     {
       label: t.pending,
       value: orders.filter((o) => o.status === "PENDING").length,
       color: "text-yellow-700",
+      bg: "bg-white",
     },
     {
       label: t.confirmed,
       value: orders.filter((o) => o.status === "CONFIRMED").length,
       color: "text-blue-700",
+      bg: "bg-white",
     },
     {
       label: t.connected,
       value: orders.filter((o) => o.status === "CONNECTED").length,
       color: "text-green-700",
+      bg: "bg-white",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#fffcf3]">
-      <header className="sticky top-0 z-30 border-b border-[#ebd69b] bg-white/95 shadow-sm backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-          <Link
-            href="/admin/dashboard"
-            className="text-xl font-extrabold text-[#292319]"
-          >
-            Circle <span className="text-[#e9a900]">Network</span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/dashboard"
-              className="rounded-lg border border-[#ebd69b] px-3 py-2 text-sm font-semibold hover:bg-[#fff3cf]"
-            >
-              {t.dashboard}
-            </Link>
-
-            <button
-              onClick={() => {
-                logout();
-                router.replace("/login");
-              }}
-              className="rounded-lg bg-[#292319] px-3 py-2 text-sm font-semibold text-white hover:bg-black"
-            >
-              {t.logout}
-            </button>
-          </div>
+    <AdminPageLayout
+      title={t.title}
+      subtitle={t.subtitle}
+      isBn={isBn}
+      loading={loading}
+      refreshing={refreshing}
+      onRefresh={() => loadOrders(false)}
+      onLogout={() => {
+        logout();
+        router.replace("/login");
+      }}
+      error={error}
+      stats={stats}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder={t.search}
+      totalCount={filteredOrders.length}
+      foundText={t.found}
+    >
+      {loading ? (
+        <div className="rounded-xl border border-[#ebd69b] bg-white p-12 text-center text-[#756b58]">
+          {t.loading}
         </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#292319] sm:text-3xl">
-              {t.title}
-            </h1>
-            <p className="mt-2 text-sm text-[#756b58]">{t.subtitle}</p>
-          </div>
-
-          <button
-            onClick={loadOrders}
-            disabled={loading}
-            className="rounded-lg bg-[#f5b91b] px-5 py-2.5 font-bold text-[#292319] hover:bg-[#e9a900] disabled:opacity-60"
-          >
-            {loading ? t.loading : t.refresh}
-          </button>
+      ) : filteredOrders.length === 0 ? (
+        <div className="rounded-xl border border-[#ebd69b] bg-white p-8 text-center text-sm text-[#756b58] sm:p-12">
+          {t.empty}
         </div>
+      ) : (
+        <>
+          {/* Mobile Order Cards */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className="min-w-0 overflow-hidden rounded-xl border border-[#ebd69b] bg-white p-4 shadow-sm"
+              >
+                <div className="flex min-w-0 items-start justify-between gap-3 border-b border-[#f0e5c8] pb-3">
+                  <div className="min-w-0">
+                    <h3 className="break-words font-bold text-[#292319]">
+                      {order.customer_name}
+                    </h3>
+                    <p className="mt-1 break-all text-sm text-[#756b58]">
+                      {order.phone}
+                    </p>
+                  </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-[#ebd69b] bg-white p-5 shadow-sm"
-            >
-              <p className="text-sm text-[#756b58]">{stat.label}</p>
-              <p className={`mt-2 text-3xl font-extrabold ${stat.color}`}>
-                {stat.value}
-              </p>
-            </div>
-          ))}
-        </div>
+                  <span
+                    className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${statusStyle(order.status)}`}
+                  >
+                    {statusLabel(order.status)}
+                  </span>
+                </div>
 
-        <div className="mb-5 flex flex-wrap gap-2">
-          {[
-            { value: "ALL", label: t.all },
-            { value: "PENDING", label: t.pending },
-            { value: "CONFIRMED", label: t.confirmed },
-            { value: "CONNECTED", label: t.connected },
-            { value: "CANCELLED", label: t.cancelled },
-          ].map((item) => (
-            <button
-              key={item.value}
-              onClick={() => setFilter(item.value)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                filter === item.value
-                  ? "bg-[#292319] text-white"
-                  : "border border-[#ebd69b] bg-white text-[#292319] hover:bg-[#fff3cf]"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-4 py-4">
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#756b58]">{t.package}</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-[#292319]">
+                      {order.package_name}
+                    </p>
+                  </div>
 
-        {error && (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#756b58]">{t.price}</p>
+                    <p className="mt-1 break-words text-sm font-bold text-[#292319]">
+                      ৳{Number(order.monthly_price).toLocaleString("en-BD")}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2 min-w-0">
+                    <p className="text-xs text-[#756b58]">{t.location}</p>
+                    <p className="mt-1 break-words text-sm text-[#292319]">
+                      {order.city}, {order.area}
+                    </p>
+                    <p className="mt-1 break-words text-xs text-[#756b58]">
+                      {order.address}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-[#f0e5c8] pt-3">
+                  <label className="mb-2 block text-xs font-semibold text-[#756b58]">
+                    {t.action}
+                  </label>
+
+                  <select
+                    value={order.status}
+                    disabled={updatingId === order.id}
+                    onChange={(e) =>
+                      handleStatusChange(
+                        order.id,
+                        e.target.value as OrderStatus,
+                      )
+                    }
+                    className="w-full rounded-lg border border-[#ebd69b] bg-white px-3 py-2.5 text-sm text-[#292319] outline-none focus:border-[#e19112] disabled:opacity-50"
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {statusLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+
+                  {updatingId === order.id && (
+                    <p className="mt-2 text-xs text-[#756b58]">{t.updating}</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
 
-        {loading ? (
-          <div className="rounded-xl border border-[#ebd69b] bg-white p-12 text-center text-[#756b58]">
-            {t.loading}
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="rounded-xl border border-[#ebd69b] bg-white p-12 text-center text-[#756b58]">
-            {t.empty}
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-[#ebd69b] bg-white shadow-sm">
+          {/* Desktop Orders Table */}
+          <div className="hidden overflow-hidden rounded-xl border border-[#ebd69b] bg-white shadow-sm md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="bg-[#fff3cf] text-[#292319]">
@@ -345,7 +388,7 @@ export default function AdminOrdersPage() {
 
                         {updatingId === order.id && (
                           <p className="mt-1 text-xs text-[#756b58]">
-                            {isBn ? "আপডেট হচ্ছে..." : "Updating..."}
+                            {t.updating}
                           </p>
                         )}
                       </td>
@@ -355,8 +398,8 @@ export default function AdminOrdersPage() {
               </table>
             </div>
           </div>
-        )}
-      </main>
-    </div>
+        </>
+      )}
+    </AdminPageLayout>
   );
 }
