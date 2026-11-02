@@ -104,9 +104,10 @@ export default function Home() {
         "সার্কেল নেটওয়ার্কের ব্যবহারকারীদের জন্য পার্লে বাংলাদেশ পণ্যে ১০% ডিসকাউন্ট",
       enTitle:
         "10% Discount on Parle Bangladesh Products for Circle Network Users",
-      bnDescription: "",
+      bnDescription:
+        "সার্কেল নেটওয়ার্ক ব্যবহারকারীদের জন্য পার্লে বাংলাদেশ-এর পণ্যে উপভোগ করুন বিশেষ ১০% ছাড়",
       enDescription:
-        "সার্কেল নেটওয়ার্ক ব্যবহারকারীদের জন্য Parle Bangladesh-এর পণ্যে উপভোগ করুন বিশেষ ১০% ছাড়",
+        "Enjoy a special 10% discount on Parle Bangladesh products for Circle Network users",
       image: "/images/promotion-1.jpeg",
       link: "/packages",
       buttonBn: "অর্ডার করুন",
@@ -131,7 +132,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveSlide((current) => (current + 1) % slides.length);
-    }, 5000);
+    }, 8000);
 
     return () => clearInterval(interval);
   }, [slides.length]);
