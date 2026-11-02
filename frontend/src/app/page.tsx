@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import PublicHeader from "./components/PublicHeader";
+import ChatWidget from "./components/ChatWidget";
 import { useLanguage } from "./components/LanguageProvider";
 
 export default function Home() {
@@ -66,6 +67,9 @@ export default function Home() {
       <footer className="border-t border-border bg-[#fff3cf] px-6 py-6 text-center text-sm text-foreground">
         © {new Date().getFullYear()} Circle Network. All rights reserved.
       </footer>
+
+      {/* Floating Customer Chat Widget */}
+      <ChatWidget />
     </>
   );
 }

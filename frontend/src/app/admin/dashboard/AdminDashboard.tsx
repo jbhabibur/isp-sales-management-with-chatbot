@@ -19,6 +19,8 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const { language } = useLanguage();
 
+  const isBn = language === "bn";
+
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [adminName, setAdminName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -165,12 +167,13 @@ export default function AdminDashboardPage() {
         }
 
         setAdminName(user.full_name);
-        setAuthorized(true);
 
+        // Dashboard data load
         const result = await getAdminDashboard();
 
         if (active) {
           setData(result);
+          setAuthorized(true);
         }
       } catch (err) {
         if (active) {
@@ -188,19 +191,18 @@ export default function AdminDashboardPage() {
     return () => {
       active = false;
     };
-  }, [router, t.error]);
+  }, [router]);
 
-  function handleLogout() {
-    logout();
-    router.replace("/login");
-  }
-
-  // যদি অথোরাইজড না হয়, তবে ব্ল্যাঙ্ক বা লোডিং স্ক্রিন দেখাবে যতক্ষণ না রিডাইরেক্ট হয়
+  // Full Screen Loading
   if (!authorized && loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#fff8e7]">
-        <div className="rounded-xl border border-[#ebd69b] bg-white p-8 text-center text-sm text-[#756b58] shadow-sm">
-          {t.loading}
+      <main className="flex min-h-screen items-center justify-center bg-[#fffcf3] px-4">
+        <div className="w-full max-w-sm rounded-xl border border-[#ebd69b] bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-[#f5e8c5] border-t-[#f5b91b]" />
+
+          <p className="text-sm font-semibold text-[#756b58]">
+            {isBn ? "ড্যাশবোর্ড লোড হচ্ছে..." : "Loading dashboard..."}
+          </p>
         </div>
       </main>
     );
@@ -384,4 +386,9 @@ export default function AdminDashboardPage() {
       </footer>
     </main>
   );
+}
+
+function handleLogout() {
+  logout();
+  window.location.replace("/login");
 }

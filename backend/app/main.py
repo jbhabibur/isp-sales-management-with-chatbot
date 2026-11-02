@@ -10,6 +10,7 @@ from app.routers.auth import router as auth_router
 from app.routers.agents import router as agents_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.future_leads import router as future_leads_router
+from app.routers.chatbot import router as chatbot_router
 
 app = FastAPI(
     title="ISP Sales Management API",
@@ -38,6 +39,7 @@ app.include_router(auth_router)
 app.include_router(agents_router)
 app.include_router(dashboard_router)
 app.include_router(future_leads_router)
+app.include_router(chatbot_router)
 
 
 @app.get("/")

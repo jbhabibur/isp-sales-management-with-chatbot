@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const content = {
     bn: {
@@ -25,8 +27,10 @@ export default function LoginPage() {
       button: "লগইন",
       loading: "লগইন হচ্ছে...",
       back: "হোম পেজে ফিরে যান",
-      invalid: "ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।",
+      showPassword: "পাসওয়ার্ড দেখুন",
+      hidePassword: "পাসওয়ার্ড লুকান",
       failed: "লগইন করা সম্ভব হয়নি। আবার চেষ্টা করুন।",
+      unauthorized: "আপনার এই অ্যাকাউন্টে প্রবেশের অনুমতি নেই।",
     },
     en: {
       title: "Login",
@@ -36,8 +40,10 @@ export default function LoginPage() {
       button: "Login",
       loading: "Logging in...",
       back: "Back to Home",
-      invalid: "Invalid email or password.",
+      showPassword: "Show password",
+      hidePassword: "Hide password",
       failed: "Unable to login. Please try again.",
+      unauthorized: "You are not authorized to access this account.",
     },
   };
 
@@ -56,7 +62,7 @@ export default function LoginPage() {
       } else if (result.user.role === "SALES_AGENT") {
         router.replace("/agent/dashboard");
       } else {
-        setError("Unauthorized user role.");
+        setError(t.unauthorized);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t.failed);
@@ -68,6 +74,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#fff8e7] px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-[#ebd69b] bg-white p-8 shadow-xl">
+        {/* Logo and Heading */}
         <div className="mb-8 text-center">
           <Link href="/" className="flex items-center justify-center gap-3">
             <Image
@@ -91,7 +98,9 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-[#756b58]">{t.subtitle}</p>
         </div>
 
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
           <div>
             <label
               htmlFor="email"
@@ -112,6 +121,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Password */}
           <div>
             <label
               htmlFor="password"
@@ -120,18 +130,31 @@ export default function LoginPage() {
               {t.password}
             </label>
 
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              autoComplete="current-password"
-              className="w-full rounded-lg border border-[#ebd69b] bg-[#fffcf3] px-4 py-3 text-sm outline-none transition focus:border-[#e9a900] focus:ring-2 focus:ring-[#f5b91b]/30"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full rounded-lg border border-[#ebd69b] bg-[#fffcf3] px-4 py-3 pr-12 text-sm outline-none transition focus:border-[#e9a900] focus:ring-2 focus:ring-[#f5b91b]/30"
+                placeholder="••••••••"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center px-4 text-[#756b58] transition hover:text-[#e9a900] focus:outline-none"
+                aria-label={showPassword ? t.hidePassword : t.showPassword}
+                title={showPassword ? t.hidePassword : t.showPassword}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
+          {/* Error Message */}
           {error && (
             <p
               role="alert"
@@ -141,6 +164,7 @@ export default function LoginPage() {
             </p>
           )}
 
+          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
@@ -150,6 +174,7 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link
             href="/"

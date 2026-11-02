@@ -12,12 +12,12 @@ export default function PublicHeader() {
     bn: {
       home: "হোম",
       packages: "ইন্টারনেট প্যাকেজ",
-      chatbot: "চ্যাটবট",
+      login: "লগইন",
     },
     en: {
       home: "Home",
       packages: "Internet Packages",
-      chatbot: "Chatbot",
+      login: "Login",
     },
   };
 
@@ -26,7 +26,8 @@ export default function PublicHeader() {
   return (
     <header className="border-b border-border bg-[#fff8e7]">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
+        {/* Logo */}
+        <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/images/logo.png"
             alt="Circle Network Logo"
@@ -37,6 +38,7 @@ export default function PublicHeader() {
           />
         </Link>
 
+        {/* Navigation */}
         <nav className="flex flex-wrap items-center gap-5 text-sm font-medium">
           <Link href="/" className="hover:text-primary">
             {t.home}
@@ -45,13 +47,19 @@ export default function PublicHeader() {
           <Link href="/packages" className="hover:text-primary">
             {t.packages}
           </Link>
-
-          <Link href="/chatbot" className="hover:text-primary">
-            {t.chatbot}
-          </Link>
         </nav>
 
-        <LanguageSwitcher />
+        {/* Login and Language */}
+        <div className="ml-auto flex items-center gap-5">
+          <Link
+            href="/login"
+            className="rounded-lg bg-[#E19112] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c77e0d]"
+          >
+            {t.login}
+          </Link>
+
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
   );
