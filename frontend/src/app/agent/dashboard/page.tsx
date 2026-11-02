@@ -30,6 +30,7 @@ export default function AgentDashboardPage() {
   const router = useRouter();
   const { language } = useLanguage();
   const isBn = language === "bn";
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [dashboard, setDashboard] = useState<AgentDashboardData | null>(null);
 
@@ -205,33 +206,88 @@ export default function AgentDashboardPage() {
   return (
     <div className="min-h-screen bg-[#fffcf3] text-[#292319]">
       {/* HEADER */}
-      <header className="sticky top-0 z-30 border-b border-[#ebd69b] bg-gradient-to-r from-[#f5b91b] to-[#ffe9a6]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link href="/agent/dashboard" className="flex items-center gap-2">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 border-b border-[#ebd69b] bg-gradient-to-r from-[#ffe9a6] via-[#f5c542] to-[#f5b91b] shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Image
               src="/images/logo.png"
-              alt="Circle Network"
+              alt="Circle Network Logo"
               width={100}
-              height={55}
+              height={60}
               priority
-              className="h-11 w-auto object-contain"
+              className="h-10 w-auto shrink-0 object-contain sm:h-12"
             />
 
-            <span className="text-lg font-extrabold sm:text-xl">
-              Circle <span className="text-[#805900]">Network</span>
+            <span className="whitespace-nowrap text-lg font-extrabold text-[#292319] sm:text-xl">
+              Circle <span className="text-white">Network</span>
             </span>
           </Link>
 
+          {/* DESKTOP NAVIGATION */}
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/"
+              className="text-sm font-semibold text-[#292319] transition hover:text-white"
+            >
+              {isBn ? "হোম পেজ" : "Home Page"}
+            </Link>
+
+            <span className="text-sm font-bold text-[#292319]">
+              {isBn ? "ড্যাশবোর্ড" : "Dashboard"}
+            </span>
+
+            <button
+              onClick={() => {
+                logout();
+                router.replace("/login");
+              }}
+              className="rounded-lg bg-[#292319] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black"
+            >
+              {isBn ? "লগআউট" : "Logout"}
+            </button>
+          </nav>
+
+          {/* MOBILE MENU BUTTON */}
           <button
-            onClick={() => {
-              logout();
-              router.replace("/login");
-            }}
-            className="rounded-xl border border-[#292319]/20 bg-white/60 px-4 py-2 text-sm font-bold transition hover:bg-white"
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={isBn ? "মেনু" : "Menu"}
+            aria-expanded={menuOpen}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#292319]/20 bg-white/40 text-2xl text-[#292319] transition hover:bg-white/70 md:hidden"
           >
-            {isBn ? "লগআউট" : "Logout"}
+            {menuOpen ? "×" : "☰"}
           </button>
         </div>
+
+        {/* MOBILE NAVIGATION */}
+        {menuOpen && (
+          <div className="border-t border-[#292319]/10 bg-[#fff3cf] px-4 py-4 md:hidden">
+            <nav className="flex flex-col gap-3">
+              <Link
+                href="/"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-[#292319] hover:bg-white/60"
+              >
+                {isBn ? "হোম পেজ" : "Home Page"}
+              </Link>
+
+              <span className="rounded-lg bg-white/60 px-3 py-2 text-sm font-bold text-[#292319]">
+                {isBn ? "ড্যাশবোর্ড" : "Dashboard"}
+              </span>
+
+              <button
+                onClick={() => {
+                  logout();
+                  router.replace("/login");
+                }}
+                className="rounded-lg bg-[#292319] px-4 py-3 text-left text-sm font-bold text-white"
+              >
+                {isBn ? "লগআউট" : "Logout"}
+              </button>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* MAIN */}
