@@ -18,9 +18,11 @@ export default function ChatWidget() {
   const { language, setLanguage } = useLanguage();
   const isBn = language === "bn";
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
   const [option, setOption] = useState<Option>(null);
+
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
 
   const [packages, setPackages] = useState<Package[]>([]);
   const [areas, setAreas] = useState<CoverageArea[]>([]);
@@ -76,9 +78,7 @@ export default function ChatWidget() {
       ? "কোনো সক্রিয় প্যাকেজ পাওয়া যায়নি।"
       : "No active packages available.",
     price: isBn ? "টাকা/মাস" : "BDT/month",
-    footer: isBn
-      ? "Circle Network Customer Support"
-      : "Circle Network Customer Support",
+    footer: "Circle Network Customer Support",
   };
 
   const inputClass =
@@ -86,6 +86,22 @@ export default function ChatWidget() {
 
   const buttonClass =
     "w-full rounded-xl bg-[#E19112] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c77e0d] disabled:cursor-not-allowed disabled:opacity-50";
+
+  // Open / Close Animation
+  const toggleChat = () => {
+    if (isClosing) return;
+
+    if (isOpen) {
+      setIsClosing(true);
+
+      setTimeout(() => {
+        setIsOpen(false);
+        setIsClosing(false);
+      }, 300);
+    } else {
+      setIsOpen(true);
+    }
+  };
 
   const reset = () => {
     setOption(null);
@@ -188,7 +204,11 @@ export default function ChatWidget() {
     <div className="fixed bottom-5 right-5 z-50">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-3 flex h-[min(650px,calc(100dvh-110px))] w-[min(390px,calc(100vw-30px))] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+        <div
+          className={`mb-3 flex h-[min(650px,calc(100dvh-110px))] w-[min(390px,calc(100vw-30px))] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
+            isClosing ? "translate-y-full" : "translate-y-0"
+          }`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between bg-[#E19112] px-4 py-4 text-white shadow-sm">
             <div className="flex items-center gap-3">
@@ -207,9 +227,10 @@ export default function ChatWidget() {
 
             <button
               type="button"
-              onClick={() => setIsOpen(false)}
+              onClick={toggleChat}
+              disabled={isClosing}
               aria-label={t.close}
-              className="rounded-full p-2 transition hover:bg-white/15"
+              className="rounded-full p-2 transition-all duration-200 hover:rotate-90 hover:bg-white/15 active:scale-90"
             >
               <svg
                 className="h-5 w-5"
@@ -313,7 +334,7 @@ export default function ChatWidget() {
                   <button
                     type="button"
                     onClick={() => openOption("connection")}
-                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-[#ffffff] p-3.5 text-left text-sm font-semibold text-gray-800 shadow-sm transition hover:border-[#E19112] hover:bg-amber-50"
+                    className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-3.5 text-left text-sm font-semibold text-gray-800 shadow-sm transition hover:border-[#E19112] hover:bg-amber-50"
                   >
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-lg">
                       🌐
@@ -377,6 +398,7 @@ export default function ChatWidget() {
                             {item.speed}
                           </p>
                         </div>
+
                         <span className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-[#B87508]">
                           {isBn ? "সক্রিয়" : "Active"}
                         </span>
@@ -511,7 +533,9 @@ export default function ChatWidget() {
                   <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-amber-50 text-xl">
                     ☎
                   </div>
+
                   <h4 className="font-bold text-gray-800">{t.agent}</h4>
+
                   <p className="mt-1 text-xs leading-5 text-gray-500">
                     {isBn
                       ? "আপনার নাম ও মোবাইল নম্বর দিন। আমাদের প্রতিনিধি আপনার সাথে যোগাযোগ করবেন।"
@@ -583,13 +607,14 @@ export default function ChatWidget() {
       {/* Floating Chat Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={toggleChat}
+        disabled={isClosing}
         aria-label={t.title}
-        className="ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E19112] text-2xl text-white shadow-xl transition hover:scale-105 hover:bg-[#c77e0d]"
+        className="ml-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#E19112] text-2xl text-white shadow-xl transition-all duration-300 ease-in-out hover:scale-110 hover:bg-[#c77e0d] active:scale-95 disabled:cursor-not-allowed"
       >
-        {isOpen ? (
+        {isOpen && !isClosing ? (
           <svg
-            className="h-6 w-6"
+            className="h-6 w-6 transition-transform duration-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
